@@ -1,0 +1,14 @@
+micronaut:
+  application:
+    name: reactiveBackend
+  server:
+    port: 8123
+netty:
+  default:
+    allocator:
+      max-order: 3
+
+redis:
+  uri: redis://localhost:6379
+  timeout: 10s
+
