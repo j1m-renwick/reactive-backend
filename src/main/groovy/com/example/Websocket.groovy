@@ -6,7 +6,7 @@ import io.micronaut.websocket.annotation.OnClose
 import io.micronaut.websocket.annotation.OnMessage
 import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
-import io.reactivex.rxjava3.core.Flowable
+import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.reactivestreams.Publisher
 
@@ -16,30 +16,40 @@ import org.reactivestreams.Publisher
  * Date: 01/02/2022
  */
 
-@ServerWebSocket("/ws/{practiceId}")
+@ServerWebSocket("/ws/{practiceId}/{username}")
 @Singleton
 @Slf4j
 class Websocket {
 
+    @Inject
+    RedisService redisService
+
     @OnOpen
-    Publisher<Event> onOpen(String practiceId, WebSocketSession session) {
+    void onOpen(String practiceId, String username, WebSocketSession session) {
         log.info("onOpen")
-        return session.send(new Event(id: "12345", eventName: "initialExampleEvent"))
+        redisService.addUser(username)
+//        return session.send(new Event(eventId: "12345", eventName: "initialExampleEvent"))
     }
 
     @OnMessage
-    void onMessage(String practiceId, String message, WebSocketSession session) {
+    void onMessage(String practiceId, String username, String message, WebSocketSession session) {
         log.info("onMessage")
         log.info(message)
     }
 
     /**
-     * Note that this gets called automatically on the browser tab being closed - this could
-     * be useful in sending events to let other users know to clear this user's data
+     * Note that this gets called automatically on the browser tab being closed
+     * - here the redis data for the user closing the connection is deleted so it will not be replayed
+     * to any new users starting sessions
      * @param session
      */
     @OnClose
-    void onClose(WebSocketSession session) {
+    void onClose(String username, WebSocketSession session) {
         log.info("onClose")
+        redisService.clearUserData(username)
+        redisService.removeUser(username)
+        // TODO need to publish an onClose event for the user as well so that frontends update
+        redisService.publish(new Event(eventId: UUID.randomUUID().toString(), sourceId: username,
+                type: EventType.USER_SESSION_EVENT,  eventAction: EventAction.USER_LOGOUT))
     }
 }

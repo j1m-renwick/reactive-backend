@@ -9,7 +9,12 @@ package com.example
  */
 class Event {
 
-    String id
-    String eventName
+    String eventId
+    // e.g. the user that caused the event
+    String sourceId
+    // e.g. the card that the user clicked
+    String targetId
+    EventAction eventAction
+    EventType type
 
 }

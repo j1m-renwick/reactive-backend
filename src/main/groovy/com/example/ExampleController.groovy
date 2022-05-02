@@ -4,6 +4,7 @@ import groovy.util.logging.Slf4j
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Post
 import io.micronaut.websocket.WebSocketBroadcaster
 import jakarta.inject.Inject
 
@@ -28,8 +29,8 @@ class ExampleController {
      *
      * @return
      */
-    @Get(uri = "/some_endpoint")
-    HttpResponse someEndpoint() {
+    @Post(uri = "/some_endpoint")
+    HttpResponse someEndpoint(EndpointRequest request) {
         /**
          * ...some logic here - e.g. updating the DB, pulling data, whatever
          */
@@ -39,8 +40,15 @@ class ExampleController {
          * picked up in the RedisListener class of each instance and broadcast to
          * that instance's websocket connections.
          */
-        redisService.publish(new Event(id: UUID.randomUUID().toString(), eventName: "some-event"))
+        // NB in reality the user would be set based on the authentication information passed in the request cookie
+        redisService.publish(new Event(eventId: UUID.randomUUID().toString(), sourceId: request.username,
+                type: EventType.USER_SESSION_EVENT,  targetId: request.cardId, eventAction: EventAction.VIEWING_CARD))
         return ok()
+    }
+
+    @Get(uri = "/replay_user_data")
+    HttpResponse replayUserData() {
+        return ok(redisService.getAssignedCards())
     }
 
 }

@@ -22,8 +22,6 @@ import java.util.function.Predicate
 @Singleton
 class RedisListener extends RedisPubSubAdapter<String, String> {
 
-    final static String REDIS_CHANNEL = "my-redis-channel"
-
     @Inject
     StatefulRedisPubSubConnection<String, String> connection
 
@@ -33,7 +31,7 @@ class RedisListener extends RedisPubSubAdapter<String, String> {
     @PostConstruct
     def init() {
         connection.addListener(this)
-        connection.sync().subscribe(REDIS_CHANNEL)
+        connection.sync().subscribe(RedisService.REDIS_CHANNEL)
     }
 
     private Predicate<WebSocketSession> practiceIdMatches(String topic) {
