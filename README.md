@@ -15,6 +15,28 @@ It is assumed is that there will be multiple instances of the microservice, and 
 
 - start redis on localhost:6379
 - run app
+- run frontend app (see README in related project for details)
+
+###APIs
+
+####POST `http://localhost:8123/poc/submit_update_event`
+
+Sends an update event to the frontend, and saves it to the redis cache.
+
+Sample request:
+```
+{
+  "username" : "alice",
+  "cardId" : "id_123",
+  "data" : "this card's subtitle is different now!"
+}
+```
+
+
+####GET `http://localhost:8123/poc/replay_event_data/{userId}`
+
+Returns the latest event data for the specified user (e.g. alice)
+
 
 ## Micronaut 3.3.0 Documentation
 

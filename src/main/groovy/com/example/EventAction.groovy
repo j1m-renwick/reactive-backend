@@ -7,5 +7,6 @@ package com.example
  */
 enum EventAction {
     VIEWING_CARD,
+    UPDATING_CARD,
     USER_LOGOUT
 }

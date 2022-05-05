@@ -11,4 +11,5 @@ class EndpointRequest {
 
     String username
     String cardId
+    String data
 }

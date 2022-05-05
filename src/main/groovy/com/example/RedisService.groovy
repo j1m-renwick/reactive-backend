@@ -34,17 +34,16 @@ class RedisService {
 
     /**
      * publishes the event to the redis Pub/Sub channel.
+     *
      * @param event
      */
     void publish(Event event) {
         String json = objectMapper.writeValueAsString(event)
         commands.publish(REDIS_CHANNEL, json)
         // user session events will need to be replayed to a new user when they log in - therefore
-        // we save the data to redis so it be sent over in the websocket's @onOpen method.
+        // we save the data to redis
         if (event.type == EventType.USER_SESSION_EVENT) {
-            if (event.eventAction == EventAction.VIEWING_CARD) {
-                commands.set(assembleKey(event.sourceId, EventAction.VIEWING_CARD), event.targetId)
-            }
+            commands.set(assembleKey(event.sourceId, event.eventAction), json)
         }
     }
 
@@ -60,17 +59,16 @@ class RedisService {
         commands.srem(REDIS_USERS_KEY, userId)
     }
 
-    Map<String, String> getAssignedCards() {
-        Set<String> users = commands.smembers(REDIS_USERS_KEY)
-        // TODO this fetch isn't efficient because of the redis structure
-        Map<String, String> assignedCards = [:]
-        users.each{
-            String cardId = commands.get(assembleKey(it, EventAction.VIEWING_CARD))
-            if (cardId) {
-                assignedCards.put(it, cardId)
-            }
-        }
-        return assignedCards
+    Map<String, Object> getLastEventsForUser(String userId) {
+        //ScanIterator.scan(commands, ScanArgs.Builder.limit(50).match("*")).next()
+
+        String rawViewEvent = commands.get(assembleKey(userId, EventAction.VIEWING_CARD))
+        String rawUpdateEvent = commands.get(assembleKey(userId, EventAction.UPDATING_CARD))
+
+        return [
+                lastViewEvent: rawViewEvent ? objectMapper.readTree(rawViewEvent) : null,
+                lastUpdateEvent: rawUpdateEvent ? objectMapper.readTree(rawUpdateEvent) : null,
+        ]
     }
 
     void clearUserData(String userId) {

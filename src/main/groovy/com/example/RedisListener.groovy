@@ -49,7 +49,7 @@ class RedisListener extends RedisPubSubAdapter<String, String> {
          *
          * e.g. so to satisfy user assignment we _could_ do something like:
          * - broadcast to everyone in user X's practice (except for user X) that User X is viewing card with id 123.
-         * - braodcast to everyone in user X's practice that the unread card queue count needs to be fetched again.
+         * - braodcast to everyone in user X's practice that the unread card queue count is stale.
          *
          * this example only sends the event message out to websockets that have the required practice id.
          */
